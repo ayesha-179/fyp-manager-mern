@@ -1,40 +1,93 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 
+// Pages
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import VerifyEmail from './pages/VerifyEmail';
-import AdminDashboard from './pages/Admin/Dashboard';
-import TeacherDashboard from './pages/Teacher/Dashboard';
-import StudentDashboard from './pages/Student/Dashboard';
+import Settings from './pages/Settings';
 
-function AppRoutes() {
-  const { user } = useAuth();
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ManageTeachers from './pages/admin/ManageTeachers';
+import ManageStudents from './pages/admin/ManageStudents';
+import ManageProjects from './pages/admin/ManageProjects';
 
-  return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/verify" element={<VerifyEmail />} />
-      <Route path="/admin/*" element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />} />
-      <Route path="/teacher/*" element={user?.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/login" />} />
-      <Route path="/student/*" element={user?.role === 'student' ? <StudentDashboard /> : <Navigate to="/login" />} />
-    </Routes>
-  );
-}
+// Teacher Pages
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import PendingRequests from './pages/teacher/PendingRequests';
+import ApprovedGroups from './pages/teacher/ApprovedGroups';
+import EvaluationPanel from './pages/teacher/EvaluationPanel';
+
+// Student Pages
+import StudentDashboard from './pages/student/StudentDashboard';
+import MyProjects from './pages/student/MyProjects';
+import Supervisors from './pages/student/Supervisors';
+import MyEvaluations from './pages/student/MyEvaluations';
+
+// Components
+import PrivateRoute from './components/Common/PrivateRoute';
 
 function App() {
+  useEffect(() => {
+    const bgDiv = document.createElement('div');
+    bgDiv.className = 'bg-3d';
+    for (let i = 0; i < 25; i++) {
+      const orb = document.createElement('div');
+      orb.className = 'floating-orb';
+      const size = Math.random() * 300 + 80;
+      orb.style.width = size + 'px';
+      orb.style.height = size + 'px';
+      orb.style.left = Math.random() * 100 + '%';
+      orb.style.top = Math.random() * 100 + '%';
+      orb.style.animationDelay = Math.random() * 20 + 's';
+      orb.style.animationDuration = (Math.random() * 20 + 12) + 's';
+      bgDiv.appendChild(orb);
+    }
+    for (let i = 0; i < 40; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'floating-particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 20 + 's';
+      particle.style.animationDuration = (Math.random() * 15 + 8) + 's';
+      bgDiv.appendChild(particle);
+    }
+    document.body.prepend(bgDiv);
+    return () => bgDiv.remove();
+  }, []);
+
   return (
-    <BrowserRouter>
+    <Router>
       <AuthProvider>
         <Toaster position="top-right" />
-        <AppRoutes />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login/:role" element={<Login />} />
+          <Route path="/register/:role" element={<Register />} />
+          
+          <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']}><AdminDashboard /></PrivateRoute>} />
+          <Route path="/admin/teachers" element={<PrivateRoute allowedRoles={['admin']}><ManageTeachers /></PrivateRoute>} />
+          <Route path="/admin/students" element={<PrivateRoute allowedRoles={['admin']}><ManageStudents /></PrivateRoute>} />
+          <Route path="/admin/projects" element={<PrivateRoute allowedRoles={['admin']}><ManageProjects /></PrivateRoute>} />
+          
+          <Route path="/teacher" element={<PrivateRoute allowedRoles={['teacher']}><TeacherDashboard /></PrivateRoute>} />
+          <Route path="/teacher/pending" element={<PrivateRoute allowedRoles={['teacher']}><PendingRequests /></PrivateRoute>} />
+          <Route path="/teacher/approved" element={<PrivateRoute allowedRoles={['teacher']}><ApprovedGroups /></PrivateRoute>} />
+          <Route path="/teacher/evaluate" element={<PrivateRoute allowedRoles={['teacher']}><EvaluationPanel /></PrivateRoute>} />
+          
+          <Route path="/student" element={<PrivateRoute allowedRoles={['student']}><StudentDashboard /></PrivateRoute>} />
+          <Route path="/student/myprojects" element={<PrivateRoute allowedRoles={['student']}><MyProjects /></PrivateRoute>} />
+          <Route path="/student/supervisors" element={<PrivateRoute allowedRoles={['student']}><Supervisors /></PrivateRoute>} />
+          <Route path="/student/evaluations" element={<PrivateRoute allowedRoles={['student']}><MyEvaluations /></PrivateRoute>} />
+          
+          <Route path="/settings" element={<PrivateRoute allowedRoles={['admin', 'teacher', 'student']}><Settings /></PrivateRoute>} />
+          
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </AuthProvider>
-    </BrowserRouter>
+    </Router>
   );
 }
 

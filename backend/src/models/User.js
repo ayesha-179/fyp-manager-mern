@@ -2,16 +2,23 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
+  name: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true, select: false },
-  role: { type: String, enum: ['admin', 'teacher', 'student'], default: 'student' },
-  isVerified: { type: Boolean, default: false },
-  verificationCode: { type: String },
-  department: { type: String, default: '' },
-  phone: { type: String, default: '' },
+  role: { type: String, enum: ['admin', 'teacher', 'student'], required: true },
+  emailVerified: { type: Boolean, default: true },
+  department: { type: String, default: 'CS' },
+  capacity: { type: Number, default: 4 },
+  acceptedGroups: { type: Number, default: 0 },
+  rollNumber: String,
+  isGroup: { type: Boolean, default: false },
+  groupMembers: [{
+    name: String,
+    rollNumber: String,
+    email: String
+  }],
   createdAt: { type: Date, default: Date.now }
-}, { timestamps: true });
+});
 
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
